@@ -20,9 +20,6 @@ Just open Intellij and select "Open project" and then select the project root an
 
 ![Imgur](http://i.imgur.com/O3oseeT.png)
 
-NOTE: Use the dedicated build system for images and unit/integration tests. This is only to help take advantage of Intellij's code editing/refactoring tools
-
-
 ### More resources / Further reading:
 
 * [Obuildfactory - a git repository for easy JDK builds complete with docker integration](https://github.com/hgomez/obuildfactory)
