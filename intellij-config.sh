@@ -34,19 +34,25 @@ function make_config() {
   echo "  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"false\">" >> $1
   echo "    <output url=\"$JDK_ROOT/build/linux-x86_64-normal-server-release/jdk/modules/$MODULE_NAME\" />" >> $1
   echo "    <output-test url=\"$JDK_ROOT/out/test/$MODULE_NAME\" />" >> $1
+  if [ $MODULE_DIR != $JDK_ROOT/.idea/ ]; then
+    add_sources_root $1
+    configure_dependencies "$MODULE_DIR/share/classes/module-info.java"
+    if [[ $MODULE_NAME != "jdk.base" ]]; then
+        echo "    <orderEntry type=\"module\" module-name=\"java.base\" />" >> "$MODULE_DIR/$MODULE_NAME.iml"
+    fi
+  fi
+  echo "    <orderEntry type=\"inheritedJdk\" />" >> $1
+  echo "    <orderEntry type=\"sourceFolder\" />" >> $1
+  echo "  </component>" >> $1
+  echo "</module>" >> $1
+}
+
+function add_sources_root() {
   echo "    <exclude-output />" >> $1
   echo "      <content url=\"\$MODULE_DIR\$\">" >> $1
   echo "        <sourceFolder url=\"file://\$MODULE_DIR\$/share/classes/\" isTestSource=\"false\" />" >> $1
   echo "      </content>" >> $1
   echo "    <content url=\"file://\$MODULE_DIR\$/share/classes\" />" >> $1
-  echo "    <orderEntry type=\"inheritedJdk\" />" >> $1
-  echo "    <orderEntry type=\"sourceFolder\" />" >> $1
-  if [[ $MODULE_NAME != "jdk.base" ]]; then
-      echo "    <orderEntry type=\"module\" module-name=\"java.base\" />" >> "$MODULE_DIR/$MODULE_NAME.iml"
-  fi
-  configure_dependencies "$MODULE_DIR/share/classes/module-info.java"
-  echo "  </component>" >> $1
-  echo "</module>" >> $1
 }
 
 function configure_dependencies() {
@@ -106,11 +112,13 @@ if [ $# -eq 0 ] && [ -a $PWD"/get_source.sh" ]; then
   JDK_ROOT=${PWD}
   echo Found project root at $JDK_ROOT
   if [ ! -d ${PWD}/.idea ]; then
-    echo initializing root project folder
+    echo initializing root project folder $IDEA_CONFIG_DIR...
     mkdir .idea
   fi
   IDEA_CONFIG_DIR=${PWD}/.idea
-  echo Condig directory: $IDEA_CONFIG_DIR
+  $MODULE_DIR="$IDEA_CONFIG_DIR"
+  $MODULE_NAME=`basename $PROJECT_DIR`
+  echo initialized project config at $IDEA_CONFIG_DIR/$MODULE_NAME.iml
   init_project_root
   create_configs $JDK_ROOT
   complete_module_list
