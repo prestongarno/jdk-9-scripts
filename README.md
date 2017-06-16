@@ -1,9 +1,7 @@
 # A one stop shop for hacking OpenJdk 1.9 with Intellij IDE
 <sub>*for bash shell only</sub>
 
-This script configures module and dependency configuration files for Intellij to set up all of the core ~68 modules set to be released with java 9 (based on Project Jigsaw, the Java 9 module system). Three steps to get started with a pretty neat JDK - complete with an experimental AOT compiler, embedded JavaScript, the JShell REPL and more! 
-
-Follow these simple steps to get the entire OpenJdk 9 codebase configured for Intellij:
+Generates XML module and dependency configuration files for Intellij to set up all of the core ~68 modules set to be released with java 9. Three steps to get started:
 
 1. Pull the latest source from the OpenJdk Mercurial repositories and run the get_source script:
 ```
@@ -16,15 +14,14 @@ Follow these simple steps to get the entire OpenJdk 9 codebase configured for In
     curl https://raw.githubusercontent.com/prestongarno/jdk-9-scripts/master/intellij-config.sh > ./intellij-config.sh
     chmod +x intellij-config.sh && ./intellij-config.sh
 ```
-3. Open `$PROJECT_ROOT` in Intellij and index. You should now see all 68 Java 9 modules listed in project view.  
+3) Run `chmod +x intellij-config-modules.sh && ./intellij-config-modules.sh`
 
-    
+Just open Intellij and select "Open project" and then select the project root and wait for it to index. Afterwards your project-view will look like this:
 
-Remember to add `rt.jar` and `tools.jar` to the `jdk.jshell` module dependencies *NOT* the project classpath.  To Intellij, this can be a standalone project without any Java 8 dependencies as `jdk.base` (core java libraries module) may cause some conflicts in static analysis to the IDE
+![Imgur](http://i.imgur.com/O3oseeT.png)
 
-Just open Intellij and select "Open project" and then select the project root and wait for it to index. 
+NOTE: Use the dedicated build system for images and unit/integration tests. This is only to help take advantage of Intellij's code editing/refactoring tools
 
-NOTE: Use the dedicated build system for images and unit/integration tests. This script is only to help take advantage of Intellij's code editing/refactoring tools.
 
 ### More resources / Further reading:
 
