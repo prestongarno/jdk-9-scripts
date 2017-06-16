@@ -1,0 +1,29 @@
+ simple file to make IJ acknowledge a module
+
+echo "    <?xml version=\"1.0\" encoding=\"UTF-8\"?\>" > $1
+echo "    <module type=\"JAVA_MODULE\" version=4>" >> $1
+echo "    <component name=\"\\NewModuleRootManager\" inherit-compiler-output=\"false\">" >> $1
+echo "     <output url=\"$JDK_ROOT/build/linux-x86_64-normal-server-release/jdk/modules/$MODULE_NAME\" />" >> $1
+echo "     <output-test url=\"$JDK_ROOT/out/test/$MODULE_NAME\" />" >> $1
+echo "        <exclude-output />" >> $1
+echo "        <content url=\"$MODULE_DIR\">" >> $1
+echo "          <sourceFolder url=\"$MODULE_DIR/share/classes\" isTestSource=\"false\" />" >> $1
+echo "        </content>" >> $1
+echo "        <orderEntry type=\"inheritedJdk\" />" >> $1
+echo "        <orderEntry type=\"sourceFolder\" />" >> $1
+echo "      </component>" >> $1
+echo "   </module>" >> $1
+
+ initialize module.xml file
+echo "  <?xml version=\"1.0\" encoding=\"UTF-8\"?\>" > $1
+echo "  <project version=\"4\">" >> $1
+echo "    <component name=\"ProjectModuleManager\">" >> $1
+echo "      <modules>" >> $1
+
+ each module appends one of these
+echo "        <module fileurl=\"file://$RELATIVE_MODULE_DIR/$MODULE_NAME.iml\" filepath=\"$MODULE_DIR/$MODULE_NAME.iml\" />" >> $MODULE_LIST
+
+ Append this part after registering all modules to complete .idea/modules.xml
+echo "      </modules>" >> $1
+echo "    </component>" >> $1
+echo "  </project> >>" >> $1
