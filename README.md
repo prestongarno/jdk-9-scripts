@@ -6,7 +6,7 @@ Generates XML module and dependency configuration files for Intellij to set up a
 1. Pull the latest source from the OpenJdk Mercurial repositories and run the get_source script:
 ```
     hg clone http://hg.openjdk.java.net/jdk9/jdk9 $PROJECT_ROOT
-    cd YourOpenJDK
+    cd $PROJECT_ROOT
     chmod +x ./get_source.sh && ./get_source.sh
 ```
 2. From `$PROJECT_ROOT` download this main script (example uses curl but you can also clone the repo) and run:
