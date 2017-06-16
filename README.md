@@ -7,16 +7,17 @@ Generates XML module and dependency configuration files for Intellij to set up a
 ```
     hg clone http://hg.openjdk.java.net/jdk9/jdk9 $PROJECT_ROOT
     cd YourOpenJDK
-    chmod +x ./get_source.sh && ./get_source.sh
+    chmod +x get_source.sh && ./get_source.sh
 ```
-2. From `$PROJECT_ROOT` download this main script (example uses curl but you can also clone the repo) and run:
+2. From `$PROJECT_ROOT` download this main script (example uses curl but you can also clone the repo):
 ```
     curl https://raw.githubusercontent.com/prestongarno/jdk-9-scripts/master/intellij-config.sh > ./intellij-config.sh
-    chmod +x intellij-config.sh && ./intellij-config.sh
 ```
-3) Run `chmod +x intellij-config-modules.sh && ./intellij-config-modules.sh`
+3) Run the configuration script which takes care of modules, dependencies, and Ant build configurations:
 
-Just open Intellij and select "Open project" and then select the project root and wait for it to index. Afterwards your project-view will look like this:
+    `chmod +x intellij-config.sh && ./intellij-config.sh`
+
+Now open `$PROJECT_DIR` in Intellij, it will look like this:
 
 ![Imgur](http://i.imgur.com/O3oseeT.png)
 
