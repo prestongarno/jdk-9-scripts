@@ -3,11 +3,13 @@
 function create_configs() {
   if [ -d $1 ]; then
     for D in $(find $1 -maxdepth 2 -type d -name src); do
-      echo "Configuring forest " + $D
+      s=$(printf "%-20s" "=")
+      echo "${s// /=}"
+      CURRENT_FOREST="$(dirname "$D")"
+      CURRENT_FOREST=${CURRENT_FOREST##*/}
+      echo "Configuring forest " + $CURRENT_FOREST
       forest_config $D
     done
-  else
-    usage
   fi
 }
 
@@ -16,10 +18,9 @@ function forest_config() {
     if [[ "$d" == ?*.?* ]] && [ -d "$d/share/classes" ]; then
       s=$(printf "%-20s" "=")
       echo "${s// /=}"
-      echo -- "`basename $d`  ||"
-      echo "${s// /=}"
+      echo -- "`basename $d`"
       MODULE_DIR=$d
-      MODULE_NAME=`basename $d`
+      MODULE_NAME="`basename $d`"
       MODULE_RELATIVE_PATH=${MODULE_DIR#$JDK_ROOT}
       make_config $d/`basename $d`.iml
     #elif [ "$d" = "linux" ] | [ "$d" = "macosx" ] | [ "$d" = "solaris" ]; then
@@ -56,7 +57,6 @@ function add_sources_root() {
 }
 
 function configure_dependencies() {
-  echo Configuring dependencies...
   TRIGGER=""
   while IFS= read -r line
   do
@@ -64,24 +64,43 @@ function configure_dependencies() {
     if [[ $trimmed ==  "module$MODULE_NAME{" ]]; then
       TRIGGER="found"
     elif [[ $TRIGGER != "" ]] && [[ $trimmed == "requirestransitive"* || $trimmed == "requires"* ]]; then
-      #echo $trimmed
       local dependency=$(echo $trimmed | sed 's:\(requirestransitive\|requires\)\(.*\);:\2:g')
-      echo "    <orderEntry type=\"module\" module-name=\"$dependency\" />" >> "$MODULE_DIR/$MODULE_NAME.iml"
+      if [[ $dependency == "rt" ]] || [[ $dependency == "tools" ]]; then
+        configure_boot_jdk $MODULE_DIR/$MODULE_NAME.iml $dependency
+      else
+        echo "    <orderEntry type=\"module\" module-name=\"$dependency\" />" >> "$MODULE_DIR/$MODULE_NAME.iml"
+      fi
 	    printf '\t%s\n' "::  $dependency"
     fi
   done <"$1"
 }
 
+function configure_boot_jdk() {
+  echo "    <orderEntry type=\"module-library\">" >> $1
+  echo "      <library>" >> $1
+  echo "        <CLASSES>" >> $1
+  if [ $2 == "rt" ]; then >> $1
+    echo "          <root url=\"jar://$JAVA_HOME/jre/lib/rt.jar!/\" />" >> $1
+  elif [ $2 == "tools" ]; then
+    echo "          <root url=\"jar://$JAVA_HOME/lib/tools.jar!/\" />" >> $1
+  fi
+  echo "        </CLASSES>" >> $1
+  echo "        <JAVADOC />" >> $1
+  echo "        <SOURCES />" >> $1
+  echo "      </library>" >> $1
+  echo "    </orderEntry>" >> $1
+}
+
 function add_module_to_projconfig() {
   # each module appends one of these to project config
-  echo "      <module fileurl=\"file://\$PROJECT_DIR\$$MODULE_RELATIVE_PATH/$MODULE_NAME.iml\" filepath=\"\$PROJECT_DIR\$$MODULE_RELATIVE_PATH/$MODULE_NAME.iml\" />" >> $MODULE_LIST
+  echo "      <module fileurl=\"file://\$PROJECT_DIR\$$MODULE_RELATIVE_PATH/$MODULE_NAME.iml\" filepath=\"\$PROJECT_DIR\$$MODULE_RELATIVE_PATH/$MODULE_NAME.iml\" group=\"$CURRENT_FOREST\" />" >> $MODULE_LIST
 
 }
 
 function init_project_root() {
   # initialize module.xml file
-  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $IDEA_CONFIG_DIR/modules.xml
-  MODULE_LIST=$IDEA_CONFIG_DIR/modules.xml
+  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > "$IDEA_CONFIG_DIR/modules.xml"
+  MODULE_LIST="$IDEA_CONFIG_DIR/modules.xml"
   echo "<project version=\"4\">" >> $MODULE_LIST
   echo "  <component name=\"ProjectModuleManager\">" >> $MODULE_LIST
   echo "    <modules>" >> $MODULE_LIST
@@ -94,44 +113,45 @@ function complete_module_list() {
   echo "</project>" >> $MODULE_LIST
 }
 
-
-function usage() {
-  printf "%s\t%s\n" "--Scipt arguments:"  "./intellij-configure.sh \$PATH_TO_JDK_SOURCE_ROOT"
-  echo "exiting..."
-  exit 1
-}
-
+#====================
+#     Script        #
+#====================
 s=$(printf "%-30s" "=")
 echo "${s// /=}"
 printf "%s\n" "Starting Intellij OpenJDK project configuration..."
 echo "${s// /=}"
+[ -z "$JAVA_HOME" ] | [ ! -d $JAVA_HOME ] && echo "Need to set valid JAVA_HOME (Java JDK 1.8)" && exit 1;
+[ ! -f "$JAVA_HOME/jre/lib/rt.jar" ] && [ ! -f "$JAVA_HOME/lib/tools.jar" ] && echo "Invalid JAVA_HOME. Use a Java 1.8 JDK distribution as boot JDK" && exit 1
 printf "%s\n" "checking for mercurial repository..."
 
 
 if [ $# -eq 0 ] && [ -a $PWD"/get_source.sh" ]; then
   JDK_ROOT=${PWD}
   echo Found project root at $JDK_ROOT
-  if [ ! -d ${PWD}/.idea ]; then
-    echo initializing root project folder $IDEA_CONFIG_DIR...
-    mkdir .idea
+
+  # copy build/IDE configs in langtools/make/intellij
+  if [ -d ${PWD}/.idea ]; then
+    rm -rf .idea
+    echo copying existing IDE resources...
+    ln -s ./langtools/make/intellij .idea
   fi
-  IDEA_CONFIG_DIR=${PWD}/.idea
-  $MODULE_DIR="$IDEA_CONFIG_DIR"
-  $MODULE_NAME=`basename $PROJECT_DIR`
+  IDEA_CONFIG_DIR=${PWD}/.idea/
+  MODULE_DIR=$IDEA_CONFIG_DIR
+  MODULE_NAME=${PWD##*/}
   echo initialized project config at $IDEA_CONFIG_DIR/$MODULE_NAME.iml
   init_project_root
   create_configs $JDK_ROOT
   complete_module_list
+  echo Updating Idea to Java 9 modules...
+  sed -i -e 's/JDK_1_8/JDK_1_9/g' .idea/misc.xml
   echo "${s// /=}"
   printf "%s\n" "OpenJDK configuration complete!"
   echo "${s// /=}"
-  echo NOTE: Module jdk.jshell requires tools.jar and rt.jar from Java 1.8
-  printf '\t%s\n' 'tools.jar is located at $JAVA8_HOME/lib/tools.jar'
-  printf '\t%s\n' 'tools.jar is located in $JAVA8_HOME/jre/lib/rt.jar'
-  printf '\t%s\n' '--Go to File->Module Settings->Select jdk.jshell->Green + butoon->Add Jar dependency to resolve'
   exit
 else
   printf '\n%s\n' "Error: Run this in a OpenJDK repository root" 
-  usage 
+  echo "exiting..."
+  exit 1
 fi 
+#====================
 
