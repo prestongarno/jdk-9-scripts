@@ -28,3 +28,7 @@ NOTE: Use the dedicated build system for images and unit/integration tests. This
 
 ### More resources / Further reading:
 
+* [Obuildfactory - a git repository for easy JDK builds complete with docker integration](https://github.com/hgomez/obuildfactory)
+* [Adopt OpenJdk - get involved](https://github.com/AdoptOpenJDK)
+* [How to contribute to the OpenJdk](http://openjdk.java.net/contribute/)
+* [Overview of the repositories](http://openjdk.java.net/guide/repositories.html)
