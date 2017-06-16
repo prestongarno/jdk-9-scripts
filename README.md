@@ -11,12 +11,12 @@ Follow these simple steps to get the entire OpenJdk 9 codebase configured for In
     cd YourOpenJDK
     chmod +x ./get_source.sh && ./get_source.sh
 ```
-2. From $PROJECT_ROOT download this main script and run:
+2. From `$PROJECT_ROOT` download this main script (example uses curl but you can also clone the repo) and run:
 ```
     curl https://raw.githubusercontent.com/prestongarno/jdk-9-scripts/master/intellij-config.sh > ./intellij-config.sh
     chmod +x intellij-config.sh && ./intellij-config.sh
 ```
-3. Open $PROJECT_ROOT in Intellij and index. You should now see all 68 Java 9 modules listed in project view.  
+3. Open `$PROJECT_ROOT` in Intellij and index. You should now see all 68 Java 9 modules listed in project view.  
 
     
 
